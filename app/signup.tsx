@@ -6,17 +6,43 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { defaultStyles } from "@/constants/Styles";
 import Colors from "@/constants/Colors";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
+import { isClerkAPIResponseError, useSignUp } from "@clerk/clerk-expo";
 
 const Signup = () => {
   const [countryCode, setCountryCode] = useState("+57");
   const [phoneNumber, setPhoneNumber] = useState("");
 
-  const onSignup = async () => {};
+  const clerkSignUp = useSignUp();
+  const router = useRouter();
+
+  const onSignup = async () => {
+    if (!clerkSignUp.isLoaded) return;
+    try {
+      const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+
+      await clerkSignUp.signUp.create({
+        phoneNumber: fullPhoneNumber,
+      });
+
+      clerkSignUp.signUp.preparePhoneNumberVerification();
+
+      router.push({
+        pathname: "/verify/[phone]",
+        params: { phone: fullPhoneNumber },
+      });
+    } catch (err) {
+      console.log("error", JSON.stringify(err, null, 2));
+      if (isClerkAPIResponseError(err)) {
+        Alert.alert("Error", err.errors[0].message);
+      }
+    }
+  };
 
   return (
     <KeyboardAvoidingView

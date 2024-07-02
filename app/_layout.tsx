@@ -1,4 +1,5 @@
 import Colors from "@/constants/Colors";
+import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
@@ -8,7 +9,41 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { TouchableOpacity } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import * as SecureStore from "expo-secure-store";
 import "react-native-reanimated";
+
+const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+if (!CLERK_PUBLISHABLE_KEY) {
+  throw new Error(
+    "Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env"
+  );
+}
+
+const tokenCache = {
+  async getToken(key: string) {
+    try {
+      const item = await SecureStore.getItemAsync(key);
+      if (item) {
+        console.log(`${key} was used 🔐 \n`);
+      } else {
+        console.log("No values stored under key: " + key);
+      }
+      return item;
+    } catch (err) {
+      console.error("SecureStore get item error: ", err);
+      await SecureStore.deleteItemAsync(key);
+      return null;
+    }
+  },
+  async saveToken(key: string, value: string) {
+    try {
+      return SecureStore.setItemAsync(key, value);
+    } catch (err) {
+      return;
+    }
+  },
+};
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -30,6 +65,7 @@ const InitialLayout = () => {
   });
 
   const router = useRouter();
+  const clerkUseAuth = useAuth();
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -41,6 +77,10 @@ const InitialLayout = () => {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    console.log({ isSignedIn: clerkUseAuth.isSignedIn });
+  }, [clerkUseAuth.isSignedIn]);
 
   if (!loaded) {
     return null;
@@ -88,7 +128,20 @@ const InitialLayout = () => {
           ),
         }}
       />
-
+      <Stack.Screen
+        name="verify/[phone]"
+        options={{
+          title: "",
+          headerBackTitle: "",
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: Colors.background },
+          headerLeft: () => (
+            <TouchableOpacity onPress={router.back}>
+              <Ionicons name="arrow-back" size={36} color={Colors.dark} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
       <Stack.Screen
         name="help"
         options={{
@@ -102,10 +155,15 @@ const InitialLayout = () => {
 
 const RootLayoutNav = () => {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="light" />
-      <InitialLayout />
-    </GestureHandlerRootView>
+    <ClerkProvider
+      publishableKey={CLERK_PUBLISHABLE_KEY}
+      tokenCache={tokenCache}
+    >
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <StatusBar style="light" />
+        <InitialLayout />
+      </GestureHandlerRootView>
+    </ClerkProvider>
   );
 };
 

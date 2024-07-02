@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { defaultStyles } from "@/constants/Styles";
 import Colors from "@/constants/Colors";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { isClerkAPIResponseError, useSignIn } from "@clerk/clerk-expo";
 
 enum SignInType {
   Phone,
@@ -23,9 +25,38 @@ enum SignInType {
 const Login = () => {
   const [countryCode, setCountryCode] = useState("+57");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const router = useRouter();
+  const clerkSignIn = useSignIn();
 
   const onSignIn = async (type: SignInType) => {
+    if (!clerkSignIn.isLoaded) return;
     if (type === SignInType.Phone) {
+      try {
+        const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+
+        const { supportedFirstFactors } = await clerkSignIn.signIn.create({
+          identifier: fullPhoneNumber,
+        });
+
+        const firstPhoneFactor: any = supportedFirstFactors.find(
+          (factor) => factor.strategy === "phone_code"
+        );
+
+        await clerkSignIn.signIn.prepareFirstFactor({
+          strategy: "phone_code",
+          phoneNumberId: firstPhoneFactor.phoneNumberId,
+        });
+
+        router.push({
+          pathname: "/verify/[phone]",
+          params: { phone: fullPhoneNumber, signIn: "true" },
+        });
+      } catch (err) {
+        console.error("error", JSON.stringify(err, null, 2));
+        if (isClerkAPIResponseError(err)) {
+          Alert.alert("Error", err.errors[0].message);
+        }
+      }
     }
   };
 
