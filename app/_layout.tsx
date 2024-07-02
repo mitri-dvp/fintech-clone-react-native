@@ -3,11 +3,11 @@ import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
-import { Link, Stack, useRouter } from "expo-router";
+import { Link, Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { TouchableOpacity } from "react-native";
+import { Text, TouchableOpacity } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as SecureStore from "expo-secure-store";
 import "react-native-reanimated";
@@ -66,6 +66,7 @@ const InitialLayout = () => {
 
   const router = useRouter();
   const clerkUseAuth = useAuth();
+  const segments = useSegments();
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -79,11 +80,21 @@ const InitialLayout = () => {
   }, [loaded]);
 
   useEffect(() => {
+    if (!clerkUseAuth.isLoaded) return;
+
+    const isAuthGroup = segments[0] === "(authenticated)";
+
+    if (clerkUseAuth.isSignedIn && !isAuthGroup) {
+      router.replace("/(authenticated)/home");
+    }
+    if (!clerkUseAuth.isSignedIn) {
+      router.replace("/");
+    }
     console.log({ isSignedIn: clerkUseAuth.isSignedIn });
   }, [clerkUseAuth.isSignedIn]);
 
-  if (!loaded) {
-    return null;
+  if (!loaded || !clerkUseAuth.isLoaded) {
+    return <Text>Loading...</Text>;
   }
 
   return (
@@ -147,6 +158,13 @@ const InitialLayout = () => {
         options={{
           title: "Help",
           presentation: "modal",
+        }}
+      />
+
+      <Stack.Screen
+        name="(authenticated)/(tabs)"
+        options={{
+          headerShown: false,
         }}
       />
     </Stack>
