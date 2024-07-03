@@ -8,10 +8,11 @@ import { defaultStyles } from "@/constants/Styles";
 import { Ionicons } from "@expo/vector-icons";
 import WidgetList from "@/components/SortableList/WidgetList";
 import { useHeaderHeight } from "@react-navigation/elements";
-
-const currency = "USD";
-const currencyFormatter = new Intl.NumberFormat(undefined);
-const dateFormatter = new Intl.DateTimeFormat(undefined, {});
+import {
+  currencySymbol,
+  currencyFormatter,
+  dateFormatter,
+} from "@/utils/format";
 
 const Page = () => {
   const { balance, clearTransactions, runTransaction, transactions } =
@@ -40,7 +41,7 @@ const Page = () => {
           <Text style={styles.balance}>
             {currencyFormatter.format(balance())}
           </Text>
-          <Text style={styles.currency}>{currency}</Text>
+          <Text style={styles.currency}>{currencySymbol}</Text>
         </View>
       </View>
 
@@ -89,7 +90,8 @@ const Page = () => {
               </View>
               <View>
                 <Text style={{ fontWeight: "bold" }}>
-                  {currencyFormatter.format(transaction.amount)} {currency}
+                  {currencyFormatter.format(transaction.amount)}{" "}
+                  {currencySymbol}
                 </Text>
               </View>
             </View>
