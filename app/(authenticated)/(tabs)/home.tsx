@@ -7,12 +7,17 @@ import { useBalanceStore } from "@/store/balance";
 import { defaultStyles } from "@/constants/Styles";
 import { Ionicons } from "@expo/vector-icons";
 import WidgetList from "@/components/SortableList/WidgetList";
+import { useHeaderHeight } from "@react-navigation/elements";
+
+const currency = "USD";
+const currencyFormatter = new Intl.NumberFormat(undefined);
+const dateFormatter = new Intl.DateTimeFormat(undefined, {});
 
 const Page = () => {
   const { balance, clearTransactions, runTransaction, transactions } =
     useBalanceStore();
 
-  const currency = "USD";
+  const headerHeight = useHeaderHeight();
 
   const onAddMoney = () => {
     const n = Math.random();
@@ -25,11 +30,11 @@ const Page = () => {
     });
   };
 
-  const currencyFormatter = new Intl.NumberFormat(undefined);
-  const dateFormatter = new Intl.DateTimeFormat(undefined, {});
-
   return (
-    <ScrollView style={{ backgroundColor: Colors.background }}>
+    <ScrollView
+      style={{ backgroundColor: Colors.background }}
+      contentContainerStyle={{ paddingTop: headerHeight }}
+    >
       <View style={styles.account}>
         <View style={styles.row}>
           <Text style={styles.balance}>
@@ -135,9 +140,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   circle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
   },
