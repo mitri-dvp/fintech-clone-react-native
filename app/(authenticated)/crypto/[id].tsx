@@ -15,6 +15,8 @@ import Colors from "@/constants/Colors";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 
+import CryptoChart from "@/components/CryptoChart";
+
 const crypto = () => {
   const { id } = useLocalSearchParams();
   const headerHeight = useHeaderHeight();
@@ -118,6 +120,7 @@ const crypto = () => {
           >
             {categories.map((category, index) => (
               <TouchableOpacity
+                key={category}
                 style={[
                   defaultStyles.pillButton,
                   {
@@ -141,6 +144,7 @@ const crypto = () => {
         )}
         renderItem={(item) => (
           <Fragment>
+            <CryptoChart />
             <View style={[defaultStyles.block, { marginTop: 20 }]}>
               <Text style={styles.subtitle}>Overview</Text>
               <Text style={{ color: Colors.gray }}>{info.description}</Text>
