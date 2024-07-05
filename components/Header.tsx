@@ -5,6 +5,7 @@ import Colors from "@/constants/Colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { TextInput } from "react-native-gesture-handler";
+import { Link } from "expo-router";
 
 const Header = () => {
   const { top } = useSafeAreaInsets();
@@ -14,11 +15,15 @@ const Header = () => {
       style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.05)", paddingTop: top }}
     >
       <View style={[styles.container, {}]}>
-        <TouchableOpacity style={[styles.avatar]}>
-          <Text style={[{ color: "white", fontWeight: "bold", fontSize: 16 }]}>
-            JM
-          </Text>
-        </TouchableOpacity>
+        <Link href={"/(authenticated)/(modals)/account"} asChild>
+          <TouchableOpacity style={styles.avatar}>
+            <Text
+              style={[{ color: "white", fontWeight: "bold", fontSize: 16 }]}
+            >
+              JM
+            </Text>
+          </TouchableOpacity>
+        </Link>
 
         <View style={styles.searchSection}>
           <Ionicons

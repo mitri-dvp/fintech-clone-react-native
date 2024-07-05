@@ -183,6 +183,20 @@ const InitialLayout = () => {
           presentation: "modal",
         }}
       />
+      <Stack.Screen
+        name="(authenticated)/(modals)/account"
+        options={{
+          title: "",
+          headerTransparent: true,
+          animation: "fade",
+          presentation: "transparentModal",
+          headerLeft: () => (
+            <TouchableOpacity onPress={router.back}>
+              <Ionicons name="close-outline" size={36} color={"white"} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
 
       <Stack.Screen
         name="(authenticated)/(tabs)"
