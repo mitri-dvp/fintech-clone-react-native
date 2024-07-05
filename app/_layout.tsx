@@ -11,6 +11,9 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const queryClient = new QueryClient();
+import UserInactivityProvider, {
+  userInactivityStorage,
+} from "@/context/UserInactivity";
 import * as SecureStore from "expo-secure-store";
 import "react-native-reanimated";
 
@@ -86,13 +89,18 @@ const InitialLayout = () => {
 
     const isAuthGroup = segments[0] === "(authenticated)";
 
+    const locked = userInactivityStorage.getBoolean("locked") || false;
+
+    if (locked) {
+      return router.replace("/(authenticated)/(modals)/lock");
+    }
+
     if (clerkUseAuth.isSignedIn && !isAuthGroup) {
-      router.replace("/(authenticated)/home");
+      return router.replace("/(authenticated)/home");
     }
     if (!clerkUseAuth.isSignedIn) {
-      router.replace("/");
+      return router.replace("/");
     }
-    console.log({ isSignedIn: clerkUseAuth.isSignedIn });
   }, [clerkUseAuth.isSignedIn]);
 
   if (!loaded || !clerkUseAuth.isLoaded) {
@@ -155,10 +163,19 @@ const InitialLayout = () => {
           ),
         }}
       />
+
       <Stack.Screen
         name="help"
         options={{
           title: "Help",
+          presentation: "modal",
+        }}
+      />
+      <Stack.Screen
+        name="(authenticated)/(modals)/lock"
+        options={{
+          headerShown: false,
+          animation: "none",
           presentation: "modal",
         }}
       />
@@ -211,10 +228,12 @@ const RootLayoutNav = () => {
       tokenCache={tokenCache}
     >
       <QueryClientProvider client={queryClient}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <StatusBar style="light" />
-          <InitialLayout />
-        </GestureHandlerRootView>
+        <UserInactivityProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <StatusBar style="light" />
+            <InitialLayout />
+          </GestureHandlerRootView>
+        </UserInactivityProvider>
       </QueryClientProvider>
     </ClerkProvider>
   );
