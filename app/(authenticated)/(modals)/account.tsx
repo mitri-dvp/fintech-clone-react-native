@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Image, TextInput } from "react-native";
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { BlurView } from "expo-blur";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -7,6 +7,22 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import Colors from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import { getAppIcon, setAppIcon } from "expo-dynamic-app-icon";
+
+const ICONS = [
+  {
+    name: "Default",
+    icon: require("@/assets/images/icon.png"),
+  },
+  {
+    name: "Dark",
+    icon: require("@/assets/images/icon-dark.png"),
+  },
+  {
+    name: "Vivid",
+    icon: require("@/assets/images/icon-vivid.png"),
+  },
+];
 
 const Modal = () => {
   const { user } = useUser();
@@ -16,9 +32,24 @@ const Modal = () => {
   const [edit, setEdit] = useState(false);
   const headerHeight = useHeaderHeight();
 
+  const [activeIcon, setActiveIcon] = useState("Default");
+
+  useEffect(() => {
+    const loadCurrentIconPreference = async () => {
+      const icon = await getAppIcon();
+      setActiveIcon(icon);
+    };
+
+    loadCurrentIconPreference();
+  }, []);
+
+  const onChangeAppIcon = (icon: string) => {
+    const res = setAppIcon(icon.toLocaleLowerCase());
+    setActiveIcon(icon);
+  };
+
   const onSaveUser = async () => {
     try {
-      console.log({ firstName: firstName, lastName: lastName });
       await user?.update({ firstName: firstName, lastName: lastName });
       setEdit(false);
     } catch (err) {
@@ -139,6 +170,24 @@ const Modal = () => {
                 <Text style={{ color: "#fff", fontSize: 12 }}>14</Text>
               </View>
             </TouchableOpacity>
+          </View>
+
+          <View style={styles.actions}>
+            {ICONS.map((icon) => (
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => onChangeAppIcon(icon.name)}
+              >
+                <Image source={icon.icon} style={{ width: 24, height: 24 }} />
+                <Text style={{ color: "#fff", fontSize: 18, flex: 1 }}>
+                  {icon.name}
+                </Text>
+                {activeIcon.toLocaleLowerCase() ===
+                icon.name.toLocaleLowerCase() ? (
+                  <Ionicons name="checkmark" size={24} color={"#fff"} />
+                ) : null}
+              </TouchableOpacity>
+            ))}
           </View>
         </Fragment>
       ) : null}
