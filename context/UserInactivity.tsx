@@ -22,7 +22,7 @@ const Provider = ({ children }: any) => {
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [isSignedIn]);
 
   const handleAppStateChange = async (nextAppState: AppStateStatus) => {
     const locked = userInactivityStorage.getBoolean("locked") || false;
@@ -39,6 +39,8 @@ const Provider = ({ children }: any) => {
       const elapsed =
         Date.now() - (userInactivityStorage.getNumber("startTime") || 0);
 
+      console.log({ elapsed });
+      console.log({ isSignedIn });
       if (elapsed > 3000 && isSignedIn) {
         router.replace("/(authenticated)/(modals)/lock");
         userInactivityStorage.set("locked", true);
